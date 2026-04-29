@@ -1,0 +1,33 @@
+name: Windows Build
+on: [push, pull_request]
+
+jobs:
+  build-windows:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install build-essential libtool autotools-dev automake pkg-config bsdmainutils curl git g++-mingw-w64-x86-64-posix
+
+      - name: Build Depends
+        run: |
+          make -C depends HOST=x86_64-w64-mingw32 -j$(nproc)
+
+      - name: Build Core
+        run: |
+          ./autogen.sh
+          CONFIG_SITE=$PWD/depends/x86_64-w64-mingw32/share/config.site ./configure --prefix=/
+          make -j$(nproc)
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: newbitcoin-windows-executables
+          path: |
+            src/newbitcoind.exe
+            src/qt/newbitcoin-qt.exe
+            src/newbitcoin-cli.exe
