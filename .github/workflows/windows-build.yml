@@ -8,14 +8,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup MSBuild
-        uses: microsoft/setup-msbuild@v1.3
+      - name: Install Dependencies via vcpkg
+        run: |
+          vcpkg install sqlite3:x64-windows boost:x64-windows openssl:x64-windows libevent:x64-windows zeromq:x64-windows
 
       - name: Configure CMake
         run: |
           mkdir build
           cd build
-          cmake .. -DBUILD_BITCOIN_TESTS=OFF -DBUILD_BITCOIN_BENCH=OFF -DWITH_WIDGETS=ON
+          cmake .. `
+            -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake `
+            -DBUILD_BITCOIN_TESTS=OFF `
+            -DBUILD_BITCOIN_BENCH=OFF `
+            -DWITH_WIDGETS=ON
 
       - name: Build Core
         run: |
