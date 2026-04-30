@@ -8,9 +8,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install Dependencies via vcpkg
+      - name: Install Dependencies
         run: |
-          vcpkg install sqlite3:x64-windows boost:x64-windows openssl:x64-windows libevent:x64-windows zeromq:x64-windows
+          vcpkg install --triplet x64-windows --classic
 
       - name: Configure CMake
         run: |
