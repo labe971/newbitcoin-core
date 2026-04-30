@@ -11,7 +11,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install build-essential libtool autotools-dev automake pkg-config bsdmainutils curl git g++-mingw-w64-x86-64-posix
+          sudo apt-get install build-essential libtool autotools-dev automake pkg-config bsdmainutils curl git g++-mingw-w64-x86-64-posix cmake
 
       - name: Build Depends
         run: |
@@ -19,9 +19,18 @@ jobs:
 
       - name: Build Core
         run: |
-          ./autogen.sh
-          CONFIG_SITE=$PWD/depends/x86_64-w64-mingw32/share/config.site ./configure --prefix=/ --disable-tests --disable-bench --disable-gui-tests
-          make -j$(nproc)
+          if [ -f "./autogen.sh" ]; then
+            echo "Uso Autotools (autogen.sh)..."
+            ./autogen.sh
+            CONFIG_SITE=$PWD/depends/x86_64-w64-mingw32/share/config.site ./configure --prefix=/ --disable-tests --disable-bench --disable-gui-tests
+            make -j$(nproc)
+          else
+            echo "Uso CMake..."
+            mkdir -p build
+            cd build
+            cmake .. -DCMAKE_TOOLCHAIN_FILE=$GITHUB_WORKSPACE/depends/x86_64-w64-mingw32/share/toolchain.cmake -DBUILD_BITCOIN_TESTS=OFF -DBUILD_BITCOIN_BENCH=OFF -DBUILD_BITCOIN_QT=ON
+            make -j$(nproc)
+          fi
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
@@ -31,7 +40,8 @@ jobs:
             src/newbitcoind.exe
             src/qt/newbitcoin-qt.exe
             src/newbitcoin-cli.exe
-            src/Release/newbitcoind.exe
-            src/Release/newbitcoin-qt.exe
+            build/src/newbitcoind.exe
+            build/src/qt/newbitcoin-qt.exe
+            build/src/newbitcoin-cli.exe
             build/src/Release/newbitcoin-qt.exe
             build/src/Release/newbitcoind.exe
