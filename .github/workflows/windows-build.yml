@@ -1,50 +1,32 @@
-name: Windows Build
+name: Windows Build MSVC
 on: [push, pull_request]
 
 jobs:
   build-windows:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install build-essential libtool autotools-dev automake pkg-config bsdmainutils curl git g++-mingw-w64-x86-64-posix cmake make
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v1.3
 
-      - name: Build Depends
+      - name: Configure CMake
         run: |
-          # Questo passaggio crea i file necessari per la toolchain
-          make -C depends HOST=x86_64-w64-mingw32 -j$(nproc)
+          mkdir build
+          cd build
+          cmake .. -DBUILD_BITCOIN_TESTS=OFF -DBUILD_BITCOIN_BENCH=OFF -DWITH_WIDGETS=ON
 
       - name: Build Core
         run: |
-          if [ -f "./autogen.sh" ]; then
-            echo "Uso Autotools..."
-            ./autogen.sh
-            CONFIG_SITE=$PWD/depends/x86_64-w64-mingw32/share/config.site ./configure --prefix=/ --disable-tests --disable-bench --disable-gui-tests
-            make -j$(nproc)
-          else
-            echo "Uso CMake..."
-            mkdir -p build
-            cd build
-            # Verifichiamo se il file esiste prima di lanciarlo
-            TOOLCHAIN=$GITHUB_WORKSPACE/depends/x86_64-w64-mingw32/share/toolchain.cmake
-            cmake .. -DCMAKE_TOOLCHAIN_FILE=$TOOLCHAIN -DBUILD_BITCOIN_TESTS=OFF -DBUILD_BITCOIN_BENCH=OFF -DBUILD_BITCOIN_QT=ON -G "Unix Makefiles"
-            make -j$(nproc)
-          fi
+          cd build
+          cmake --build . --config Release -j $env:NUMBER_OF_PROCESSORS
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: newbitcoin-windows-executables
+          name: newbitcoin-windows-msvc
           path: |
-            src/newbitcoind.exe
-            src/qt/newbitcoin-qt.exe
-            src/newbitcoin-cli.exe
-            build/src/newbitcoind.exe
-            build/src/qt/newbitcoin-qt.exe
-            build/src/newbitcoin-cli.exe
-            build/src/Release/newbitcoin-qt.exe
             build/src/Release/newbitcoind.exe
+            build/src/qt/Release/newbitcoin-qt.exe
+            build/src/Release/newbitcoin-cli.exe
