@@ -8,16 +8,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install Dependencies
-        run: |
-          vcpkg install --triplet x64-windows --classic
-
       - name: Configure CMake
         run: |
           mkdir build
           cd build
+          # Non chiamiamo vcpkg a mano, lasciamo che CMake usi il manifest
           cmake .. `
             -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake `
+            -DVCPKG_TARGET_TRIPLET=x64-windows `
             -DBUILD_BITCOIN_TESTS=OFF `
             -DBUILD_BITCOIN_BENCH=OFF `
             -DWITH_WIDGETS=ON
