@@ -31,3 +31,7 @@ jobs:
             src/newbitcoind.exe
             src/qt/newbitcoin-qt.exe
             src/newbitcoin-cli.exe
+            src/Release/newbitcoind.exe
+            src/Release/newbitcoin-qt.exe
+            build/src/Release/newbitcoin-qt.exe
+            build/src/Release/newbitcoind.exe
